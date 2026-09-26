@@ -1,0 +1,51 @@
+%% RETO 2 - MODELADO DEL BALANCE HÍBRIDO
+%% Proyecto SIGE
+%% Simulación de una micro-red híbrida durante 24 horas
+%% Estudiante: Juan Camilo Hincapié Fernández
+%% Curso: Software para Ingeniería
+clc; clear; close all;
+%% Vector de horas (1 a 24)
+horas = 1:24;
+%% a) Generación Solar (Pmax = 25 kW)
+P_max_solar = 25;
+% Empieza en 0 para todas las horas
+solar = zeros(1, 24);   
+% Subida: de la hora 6 a la 12 (llega al pico de 25 kW en la hora 12)
+for h = 6:12
+    solar(h) = P_max_solar * (h - 5) / 7;
+end
+% Bajada: de la hora 13 a la 18
+for h = 13:18
+    solar(h) = P_max_solar * (19 - h) / 7;
+end
+% Horas 1-5 y 19-24 quedan en 0 kW (noche)
+%% b) Generación Eólica (Pmax = 15 kW)
+P_max_eolica = 15;
+% Valores irregulares (suben y bajan) que nunca superan 15 kW
+eolica = [ 6  8  5  9 12  7 10 13  8 11 ...
+    14  9 12 10 13  7 11  8 12 14 ...
+    9 10  6  8];
+% Seguridad: limita cualquier valor que pase de 15 kW
+eolica(eolica > P_max_eolica) = P_max_eolica;
+%% c) Generación Híbrida Total
+generacion_total = solar + eolica;
+%% d) Demanda de la Comunidad (Pmax = 15 kW)
+demanda = zeros(1, 24);
+% Consumo mínimo (horas 1-5 y 22-24): entre 2 y 4 kW
+demanda([1:5, 22:24]) = [2.0 2.4 2.1 3.2 3.7 3.8 3.4 2.8];
+% Consumo diurno (horas 6-17): entre 6 y 10 kW
+demanda(6:17) = [6 6.5 7 7.5 8 8.5 9 9.5 10 9 8 7];
+% Pico máximo (horas 18-21): hasta 15 kW
+demanda(18:21) = [12 14 15 13];
+%% e) Gráfica
+figure;
+plot(horas, generacion_total, 'g-o', 'LineWidth', 2);   % Generación total
+hold on;
+plot(horas, demanda, 'r-s', 'LineWidth', 2);            % Demanda
+title('Generación Total vs Demanda de la Micro-red');
+xlabel('Tiempo (horas)');
+ylabel('Potencia (kW)');
+grid on;
+legend('Generación Total', 'Demanda del Pueblo');
+xlim([1 24]);
+hold off;
